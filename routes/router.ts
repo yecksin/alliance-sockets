@@ -1,50 +1,79 @@
-import { Request, Response, Router } from 'express';
-import puppeteer from 'puppeteer';
+import { Router, Request, Response } from 'express';
+import Server from '../classes/server';
+import { usuariosConectados } from '../sockets/socket';
 
 const router = Router();
 
-router.get('/bi-front', async (req: Request, res: Response) => {
-  try {
-    const url = req?.query?.url || '';
-    const urlIsString = typeof url == 'string';
-    //? to show navigator use headless: true and slowMo: 250 to see the process slow
+router.get('/mensajes', (req: Request, res: Response) => {
+  res.json({
+    ok: true,
+    mensaje: 'Todo esta bien!!'
+  });
+});
 
-    if (urlIsString && !url?.includes('/monitor'))
-      return res.status(404).json({ error: 'The route must contain /monitor to be evaluated.' });
+router.post('/mensajes', (req: Request, res: Response) => {
+  const cuerpo = req.body.cuerpo;
+  const de = req.body.de;
 
-    if (typeof url != 'string') return res.status(404).json({ error: 'The route does not exist.' });
+  const payload = { cuerpo, de };
 
-    const browser = await puppeteer.launch({ headless: true });
-    const page = await browser.newPage();
-    await page.goto(url);
+  const server = Server.instance;
+  server.io.emit('mensaje-nuevo', payload);
 
-    await page.waitForSelector('.step-4');
+  res.json({
+    ok: true,
+    cuerpo,
+    de
+  });
+});
 
-    const works = await page.evaluate(() => {
-      const element = document.querySelector('.step-4');
-      return element ? element.getAttribute('works') : null;
-    });
+router.post('/mensajes/:id', (req: Request, res: Response) => {
+  const cuerpo = req.body.cuerpo;
+  const de = req.body.de;
+  const id = req.params.id;
 
-    await browser.close();
+  const payload = {
+    de,
+    cuerpo
+  };
 
-    let message;
-    const isWorkNotNull = works != null;
-    const isWorkTrue = works === 'true';
+  const server = Server.instance;
 
-    if (isWorkNotNull) {
-      message = isWorkTrue ? 'Embedding generated successfully.' : "Embedding wasn't generated.";
-    } else {
-      message = 'Error in the web scraping process.';
-    }
+  server.io.in(id).emit('mensaje-privado', payload);
 
-    res.json({
-      works,
-      message,
-      url
-    });
-  } catch (error) {
-    res.status(400).json({ error });
-  }
+  res.json({
+    ok: true,
+    cuerpo,
+    de,
+    id
+  });
+});
+
+// Servicio para obtener todos los IDs de los usuarios
+// router.get('/usuarios', (req: Request, res: Response) => {
+//   const server = Server.instance;
+
+//   server.io.clients((err: any, clientes: string[]) => {
+//     if (err) {
+//       return res.json({
+//         ok: false,
+//         err
+//       });
+//     }
+
+//     res.json({
+//       ok: true,
+//       clientes
+//     });
+//   });
+// });
+
+// Obtener usuarios y sus nombres
+router.get('/usuarios/detalle', (req: Request, res: Response) => {
+  res.json({
+    ok: true,
+    clientes: usuariosConectados.getLista()
+  });
 });
 
 export default router;
