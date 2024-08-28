@@ -1,51 +1,64 @@
 import { Socket } from 'socket.io';
 import socketIO from 'socket.io';
-import { UsuariosLista } from '../classes/usuarios-lista';
+import { UserList } from '../classes/user-list';
 import { Usuario } from '../classes/usuario';
 
-export const usuariosConectados = new UsuariosLista();
+export const userList = new UserList();
 
-export const conectarCliente = (cliente: Socket, io: socketIO.Server) => {
-  const usuario = new Usuario(cliente.id);
-  usuariosConectados.agregar(usuario);
+export const connectScoketIO = (client: Socket, io: socketIO.Server) => {
+  const usuario = new Usuario(client.id);
+  userList.addUser(usuario);
 };
 
-export const desconectar = (cliente: Socket, io: socketIO.Server) => {
-  cliente.on('disconnect', () => {
-    console.log('Cliente desconectado');
+export const disconnectSocketIO = (client: Socket, io: socketIO.Server) => {
+  client.on('disconnect', () => {
+    userList.deleteUser(client.id);
 
-    usuariosConectados.borrarUsuario(cliente.id);
+    io.emit('all-connected-users', userList.getList());
 
-    io.emit('usuarios-activos', usuariosConectados.getLista());
+    const rooms = Array.from(client.rooms);
+    rooms.forEach(room => {
+      client.leave(room);
+      io.to(room).emit('updateUserList', getRoomUsers(io, room));
+    });
   });
 };
 
-// Escuchar mensajes
-export const mensaje = (cliente: Socket, io: socketIO.Server) => {
-  cliente.on('mensaje', (payload: { de: string; cuerpo: string }) => {
-    console.log('Mensaje recibido', payload);
-
-    io.emit('mensaje-nuevo', payload);
-  });
-};
-
-// Configurar usuario
-export const configurarUsuario = (cliente: Socket, io: socketIO.Server) => {
-  cliente.on('configurar-usuario', (payload: { nombre: string }, callback: Function) => {
-    usuariosConectados.actualizarNombre(cliente.id, payload.nombre);
-
-    io.emit('usuarios-activos', usuariosConectados.getLista());
+export const configUser = (client: Socket, io: socketIO.Server) => {
+  client.on('config-user', (payload: { name: string; userId: number }, callback: Function) => {
+    const { name, userId } = payload;
+    userList.configUser(client.id, name, userId);
+    io.emit('all-connected-users', userList.getList());
 
     callback({
       ok: true,
-      mensaje: `Usuario ${payload.nombre}, configurado`
+      mensaje: `user ${payload.name}, configured`
     });
   });
 };
 
 // Obtener Usuarios
-export const obtenerUsuarios = (cliente: Socket, io: socketIO.Server) => {
-  cliente.on('obtener-usuarios', () => {
-    io.to(cliente.id).emit('usuarios-activos', usuariosConectados.getLista());
+export const getUsers = (client: Socket, io: socketIO.Server) => {
+  client.on('obtener-usuarios', () => {
+    io.to(client.id).emit('all-connected-users', userList.getList());
   });
 };
+
+export const joinRoom = (client: Socket, io: socketIO.Server) => {
+  client.on('join-room', (roomId: string) => {
+    client.join(roomId);
+    io.to(roomId).emit('updateUserList', getRoomUsers(io, roomId));
+  });
+};
+
+export const leaveRoom = (client: Socket, io: socketIO.Server) => {
+  client.on('leave-room', (roomId: string) => {
+    client.leave(roomId);
+    io.to(roomId).emit('updateUserList', getRoomUsers(io, roomId));
+  });
+};
+
+function getRoomUsers(io: socketIO.Server, roomId: any) {
+  const room = io.sockets.adapter.rooms.get(roomId);
+  return room ? Array.from(room) : [];
+}

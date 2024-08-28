@@ -18,4 +18,4 @@ app.get('/example', (req, res) => {
   res.send('Hola Mundo');
 });
 
-app.use('/', router);
+app.use('/socket', router);

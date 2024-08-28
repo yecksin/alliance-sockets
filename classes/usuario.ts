@@ -1,17 +1,11 @@
-
-
 export class Usuario {
+  public socketId: string;
+  public userId: number | null;
+  public name: string;
 
-    public id: string;
-    public nombre: string;
-    public sala: string;
-
-    constructor( id: string ) { 
-        
-        this.id = id;
-        this.nombre = 'sin-nombre';
-        this.sala   = 'sin-sala';
-
-    }
-
+  constructor(socketId: string) {
+    this.socketId = socketId;
+    this.name = 'nameless';
+    this.userId = null;
+  }
 }

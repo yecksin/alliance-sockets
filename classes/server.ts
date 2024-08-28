@@ -26,31 +26,26 @@ export default class Server {
       }
     });
 
-    this.escucharSockets();
+    this.listenSockets();
   }
 
   public static get instance() {
     return this._instance || (this._instance = new this());
   }
 
-  private escucharSockets() {
-    console.log('Escuchando conexiones - sockets');
+  private listenSockets() {
+    this.io.on('connection', client => {
+      socket.connectScoketIO(client, this.io);
 
-    this.io.on('connection', cliente => {
-      // Conectar cliente
-      socket.conectarCliente(cliente, this.io);
+      socket.configUser(client, this.io);
 
-      // Configurar usuario
-      socket.configurarUsuario(cliente, this.io);
+      socket.getUsers(client, this.io);
 
-      // Obtener usuarios activos
-      socket.obtenerUsuarios(cliente, this.io);
+      socket.disconnectSocketIO(client, this.io);
 
-      // Mensajes
-      socket.mensaje(cliente, this.io);
+      socket.joinRoom(client, this.io);
 
-      // Desconectar
-      socket.desconectar(cliente, this.io);
+      socket.leaveRoom(client, this.io);
     });
   }
 
