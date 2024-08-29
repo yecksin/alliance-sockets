@@ -1,4 +1,4 @@
-export class Usuario {
+export class User {
   public socketId: string;
   public userId: number | null;
   public name: string;

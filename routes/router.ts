@@ -34,7 +34,7 @@ router.post('/notification', (req: Request, res: Response) => {
 router.get('/users', (req: Request, res: Response) => {
   res.json({
     ok: true,
-    clientes: userList.getList()
+    clients: userList.getList()
   });
 });
 

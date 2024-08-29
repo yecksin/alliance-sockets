@@ -1,13 +1,13 @@
 import { Socket } from 'socket.io';
 import socketIO from 'socket.io';
 import { UserList } from '../classes/user-list';
-import { Usuario } from '../classes/usuario';
+import { User } from '../classes/user';
 
 export const userList = new UserList();
 
 export const connectScoketIO = (client: Socket, io: socketIO.Server) => {
-  const usuario = new Usuario(client.id);
-  userList.addUser(usuario);
+  const user = new User(client.id);
+  userList.addUser(user);
 };
 
 export const disconnectSocketIO = (client: Socket, io: socketIO.Server) => {
@@ -32,15 +32,8 @@ export const configUser = (client: Socket, io: socketIO.Server) => {
 
     callback({
       ok: true,
-      mensaje: `user ${payload.name}, configured`
+      message: `user ${payload.name}, configured`
     });
-  });
-};
-
-// Obtener Usuarios
-export const getUsers = (client: Socket, io: socketIO.Server) => {
-  client.on('obtener-usuarios', () => {
-    io.to(client.id).emit('all-connected-users', userList.getList());
   });
 };
 

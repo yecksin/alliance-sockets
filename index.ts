@@ -14,8 +14,8 @@ server.start(() => {
   console.log(`Server running on port http://localhost:${server.port}`);
 });
 
-app.get('/example', (req, res) => {
-  res.send('Hola Mundo');
+app.get('/', (req, res) => {
+  res.send('Works');
 });
 
 app.use('/socket', router);

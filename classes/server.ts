@@ -21,7 +21,7 @@ export default class Server {
     this.httpServer = new http.Server(this.app);
     this.io = new socketIO.Server(this.httpServer, {
       cors: {
-        origin: 'http://localhost:4200', // Permitir solicitudes desde esta dirección
+        origin: 'http://localhost:4200',
         methods: ['GET', 'POST']
       }
     });
@@ -38,8 +38,6 @@ export default class Server {
       socket.connectScoketIO(client, this.io);
 
       socket.configUser(client, this.io);
-
-      socket.getUsers(client, this.io);
 
       socket.disconnectSocketIO(client, this.io);
 

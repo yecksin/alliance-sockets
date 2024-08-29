@@ -1,18 +1,18 @@
-import { Usuario } from './usuario';
+import { User } from './user';
 
 export class UserList {
-  private userList: Usuario[] = [];
+  private userList: User[] = [];
 
-  public addUser(usuario: Usuario) {
-    this.userList.push(usuario);
-    return usuario;
+  public addUser(user: User) {
+    this.userList.push(user);
+    return user;
   }
 
   public configUser(socketId: string, name: string, userId: number) {
-    for (const usuario of this.userList) {
-      if (usuario.socketId === socketId) {
-        usuario.name = name;
-        usuario.userId = userId;
+    for (const user of this.userList) {
+      if (user.socketId === socketId) {
+        user.name = name;
+        user.userId = userId;
         break;
       }
     }
@@ -20,26 +20,26 @@ export class UserList {
 
   public getSocketIdsByUserIds(userIds: string | string[]): {
     socketIds: string | string[];
-    users: Usuario[];
+    users: User[];
   } {
-    const users = this.userList.filter((usuario: Usuario) => {
-      return usuario.userId ? userIds.includes(usuario.userId.toString()) : false;
+    const users = this.userList.filter((user: User) => {
+      return user.userId ? userIds.includes(user.userId.toString()) : false;
     });
-    return { socketIds: users.map(usuario => usuario.socketId), users };
+    return { socketIds: users.map(user => user.socketId), users };
   }
 
   public getList() {
-    return this.userList.filter(usuario => usuario.name !== 'nameless');
+    return this.userList.filter(user => user.name !== 'nameless');
   }
 
   public getUser(socketId: string) {
-    return this.userList.find(usuario => usuario.socketId === socketId);
+    return this.userList.find(user => user.socketId === socketId);
   }
 
   public deleteUser(socketId: string) {
     const user = this.getUser(socketId);
 
-    this.userList = this.userList.filter(usuario => usuario.socketId !== socketId);
+    this.userList = this.userList.filter(user => user.socketId !== socketId);
 
     return user;
   }
